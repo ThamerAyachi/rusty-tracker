@@ -6,7 +6,12 @@ use std::io::Write;
 const FILE_PATH: &'static str = "expense.json";
 
 fn file() -> File {
-    File::create(FILE_PATH).unwrap()
+    fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(FILE_PATH)
+        .unwrap()
 }
 
 fn read_file() -> Result<String, std::io::Error> {
