@@ -2,9 +2,6 @@ mod expense;
 pub mod file;
 
 use crate::expense::Expense;
-use crate::file::read_file;
-use rand;
-use serde_json::to_string;
 use std::env;
 
 enum ACTION {
@@ -34,7 +31,7 @@ fn main() {
 
     match ACTION::from_str(action) {
         Some(ACTION::ADD) => add_expense(args),
-        Some(ACTION::LIST) => println!("Listing to {}", args[1]),
+        Some(ACTION::LIST) => list_expenses(),
         None => println!("Please provide an action (add|list)"),
     }
 }
@@ -45,13 +42,11 @@ fn add_expense(args: Vec<String>) {
         return;
     }
 
-    let expense = Expense::new(
-        rand::random::<u32>(),
-        args[2].parse().unwrap(),
-        args[3].clone(),
-    );
+    let _ = Expense::new(args[2].parse().unwrap(), args[3].clone());
+}
 
-    let _ = file::write_file(expense.to_string());
-
-    println!("{}", expense.to_string());
+fn list_expenses() {
+    for expense in Expense::list() {
+        println!("{}", expense.to_string());
+    }
 }
