@@ -1,18 +1,15 @@
-use std::env;
-use std::io::Write;
-use rand;
-use serde::Serialize;
+mod expense;
+pub mod file;
 
-#[derive(Serialize)]
-struct Expense {
-    id: u32,
-    amount: f64,
-    description: String,
-}
+use crate::expense::Expense;
+use crate::file::read_file;
+use rand;
+use serde_json::to_string;
+use std::env;
 
 enum ACTION {
     ADD,
-    LIST
+    LIST,
 }
 
 impl ACTION {
@@ -20,7 +17,7 @@ impl ACTION {
         match value {
             "add" => Some(ACTION::ADD),
             "list" => Some(ACTION::LIST),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -28,8 +25,9 @@ impl ACTION {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() != 2 {
+    if args.len() != 2 && args.len() != 4 {
         println!("Please provide an action (add|list)");
+        return;
     }
 
     let action = &args[1];
@@ -37,7 +35,7 @@ fn main() {
     match ACTION::from_str(action) {
         Some(ACTION::ADD) => add_expense(args),
         Some(ACTION::LIST) => println!("Listing to {}", args[1]),
-        None => println!("Please provide an action (add|list)")
+        None => println!("Please provide an action (add|list)"),
     }
 }
 
@@ -47,17 +45,13 @@ fn add_expense(args: Vec<String>) {
         return;
     }
 
-    let expense = Expense {
-        id: rand::random::<u32>(),
-        amount: args[2].parse().unwrap(),
-        description: args[3].clone()
-    };
+    let expense = Expense::new(
+        rand::random::<u32>(),
+        args[2].parse().unwrap(),
+        args[3].clone(),
+    );
 
-    let json = serde_json::to_string_pretty(&expense).unwrap();
-    
-    let mut file = std::fs::File::create("expense.json").unwrap();
-    
-    file.write_all(json.as_bytes()).unwrap();
-    
-    println!("{}", json);
+    let _ = file::write_file(expense.to_string());
+
+    println!("{}", expense.to_string());
 }
